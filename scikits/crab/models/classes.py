@@ -22,7 +22,7 @@ logger = logging.getLogger('crab')
 class MatrixPreferenceDataModel(BaseDataModel):
     '''
     Matrix with preferences based Data model
-    A DataModel backed by a python dict structured data.
+    A DataModel backed by a NumPy matrix structured data.
     This class expects a simple dictionary where each
     element contains a userID, followed by itemID,
     followed by preference value and optional timestamp.
@@ -762,8 +762,69 @@ class MatrixBooleanPrefDataModel(BaseDataModel):
 # DictDataModel
 class DictPreferenceDataModel(BaseDataModel):
     '''
-    Represents a repository of information about users and their
+    Repository of information about users and their
     associated preferences for items.
+    
+    A DataModel backed by a python dict structured data.
+    This class expects a simple dictionary where each
+    element contains a userID, followed by itemID,
+    followed by preference value and optional timestamp.
+
+    {userID:{itemID:preference, itemID2:preference2},
+       userID2:{itemID:preference3,itemID4:preference5}}
+
+    Preference value is the parameter that the user simply
+     expresses the degree of preference for an item.
+
+    Parameters
+    ----------
+    dataset dict, shape  = {userID:{itemID:preference, itemID2:preference2},
+              userID2:{itemID:preference3,itemID4:preference5}}
+
+    Examples
+    ---------
+    >>> from scikits.crab.models.classes import DictPreferenceDataModel
+    >>> model = DictPreferenceDataModel({})
+    >>> #empty dataset
+    >>> model.user_ids()
+    array([], dtype=float64)
+    >>> model.item_ids()
+    array([], dtype=float64)
+    >>> movies = {'Marcel Caraciolo': {'Lady in the Water': 2.5, \
+     'Snakes on a Plane': 3.5, \
+     'Just My Luck': 3.0, 'Superman Returns': 3.5, 'You, Me and Dupree': 2.5, \
+     'The Night Listener': 3.0}, \
+     'Paola Pow': {'Lady in the Water': 3.0, 'Snakes on a Plane': 3.5, \
+     'Just My Luck': 1.5, 'Superman Returns': 5.0, 'The Night Listener': 3.0, \
+     'You, Me and Dupree': 3.5}, \
+    'Leopoldo Pires': {'Lady in the Water': 2.5, 'Snakes on a Plane': 3.0, \
+     'Superman Returns': 3.5, 'The Night Listener': 4.0}, \
+    'Lorena Abreu': {'Snakes on a Plane': 3.5, 'Just My Luck': 3.0, \
+     'The Night Listener': 4.5, 'Superman Returns': 4.0, \
+     'You, Me and Dupree': 2.5}, \
+    'Steve Gates': {'Lady in the Water': 3.0, 'Snakes on a Plane': 4.0, \
+     'Just My Luck': 2.0, 'Superman Returns': 3.0, 'The Night Listener': 3.0, \
+     'You, Me and Dupree': 2.0}, \
+    'Sheldom': {'Lady in the Water': 3.0, 'Snakes on a Plane': 4.0, \
+     'The Night Listener': 3.0, 'Superman Returns': 5.0, \
+     'You, Me and Dupree': 3.5}, \
+    'Penny Frewman': {'Snakes on a Plane':4.5,'You, Me and Dupree':1.0, \
+    'Superman Returns':4.0}, \
+    'Maria Gabriela': {}}
+    >>> model = DictPreferenceDataModel(movies)
+    >>> #non-empty dataset
+    >>> model.user_ids()
+    array(['Leopoldo Pires', 'Lorena Abreu', 'Marcel Caraciolo',
+               'Maria Gabriela', 'Paola Pow', 'Penny Frewman', 'Sheldom',
+               'Steve Gates'],
+              dtype='|S16')
+    >>> model.item_ids()
+    array(['Just My Luck', 'Lady in the Water', 'Snakes on a Plane',
+               'Superman Returns', 'The Night Listener', 'You, Me and Dupree'],
+              dtype='|S18')
+    >>> model.preferences_from_user('Sheldom')
+    [('Lady in the Water', 3.0), ('Snakes on a Plane', 4.0), ('Superman Returns', 5.0),
+        ('The Night Listener', 3.0), ('You, Me and Dupree', 3.5)]
     '''
 
     def __init__(self, dataset):
@@ -772,10 +833,7 @@ class DictPreferenceDataModel(BaseDataModel):
         self.build_model()
 
     def build_model(self):
-        '''
-        Constructor
-        preferences: a list of Preference objects
-        '''
+        
         self._user_ids = list()
         self._item_ids = list()
         
@@ -820,7 +878,7 @@ class DictPreferenceDataModel(BaseDataModel):
         '''
         Returns
         -------
-        self.user_ids:  numpy array of shape [n_user_ids]
+        self.user_ids:  list of shape [n_user_ids]
                         Return all user ids in the model, in order
         '''
         return self._user_ids
@@ -829,7 +887,7 @@ class DictPreferenceDataModel(BaseDataModel):
         '''
         Returns
         -------
-        self.item_ids:  numpy array of shape [n_item_ids]
+        self.item_ids:  list of shape [n_item_ids]
                     Return all item ids in the model, in order
         '''
         return self._item_ids
