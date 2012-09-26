@@ -864,8 +864,8 @@ class DictPreferenceDataModel(BaseDataModel):
                 if self.min_pref > value:
                     self.min_pref = value
                     
-        self._user_ids.sort()
-        self._item_ids.sort()
+        self._user_ids = np.array(sorted(self._user_ids))
+        self._item_ids = np.array(sorted(self._item_ids))
                 
     def __getitem__(self, user_id):
         return self.preferences_from_user(user_id)
@@ -929,7 +929,7 @@ class DictPreferenceDataModel(BaseDataModel):
         n_users:  int
                   Return total number of users known to the model.
         '''
-        return len(self._user_ids)
+        return self._user_ids.size
 
     def items_count(self):
         '''
@@ -938,7 +938,7 @@ class DictPreferenceDataModel(BaseDataModel):
         n_items:  int
                   Return total number of items known to the model.
         '''
-        return len(self._item_ids)
+        return self._item_ids.size
     
     def preferences_from_user(self, user_id, order_by_id=True):
         '''
